@@ -9,7 +9,8 @@ export const getRecommendations = async (filters: FilterState): Promise<ContentI
   const model = "gemini-3-flash-preview";
 
   const prompt = `
-    Recommend 4 specific content titles (Movies, Webtoons, Novels, or Anime) based on the following user preferences:
+    Recommend 4 specific content titles (Movies, Webtoons, Novels, Anime, or Drama) based on the following user preferences:
+    - Category: ${filters.category || "Any (Mix of Movie, Webtoon, Novel, Anime, Drama)"}
     - Genre: ${filters.genre || "Any"}
     - Platform: ${filters.platform || "Any"}
     - Mood: ${filters.mood || "Any"}

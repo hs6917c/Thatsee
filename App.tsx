@@ -12,7 +12,7 @@ import { Sparkles, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const App: React.FC = () => {
-  const [filters, setFilters] = useState<FilterState>({ genre: null, platform: null, mood: null });
+  const [filters, setFilters] = useState<FilterState>({ category: null, genre: null, platform: null, mood: null });
   const [recommendations, setRecommendations] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -42,6 +42,16 @@ const App: React.FC = () => {
     setExpandedSection(null);
     document.body.style.overflow = 'auto';
   };
+
+  // Filter static items based on the selected category
+  const filterByCat = (items: ContentItem[]) => {
+    if (!filters.category) return items;
+    return items.filter(item => item.category === filters.category);
+  };
+
+  const filteredTrending = filterByCat(TRENDING_ITEMS);
+  const filteredTierList = filterByCat(TIER_LIST_ITEMS);
+  const filteredFunding = filterByCat(FUNDING_ITEMS);
 
   return (
     <div className="min-h-screen bg-background text-white font-sans selection:bg-primary selection:text-white">
@@ -99,27 +109,41 @@ const App: React.FC = () => {
 
         {/* Static Content Sections */}
         <div className="space-y-4 max-w-full overflow-hidden">
-           <SectionRow 
-             title="🔥 지금 실시간으로 뜨는 콘텐츠 TOP 10" 
-             subtitle="판매량 및 검색어 기준 급상승 중인 작품들"
-             items={TRENDING_ITEMS} 
-             onExpand={() => handleExpand('실시간 인기 콘텐츠', TRENDING_ITEMS)}
-           />
+           {filteredTrending.length > 0 && (
+             <SectionRow 
+               title="🔥 지금 실시간으로 뜨는 콘텐츠 TOP 10" 
+               subtitle="판매량 및 검색어 기준 급상승 중인 작품들"
+               items={filteredTrending} 
+               onExpand={() => handleExpand('실시간 인기 콘텐츠', filteredTrending)}
+             />
+           )}
 
-           <SectionRow 
-             title="👑 이번 주 장르별 티어리스트 S등급" 
-             subtitle="커뮤니티 평판을 종합한 검증된 명작"
-             items={TIER_LIST_ITEMS} 
-             onExpand={() => handleExpand('장르별 티어리스트', TIER_LIST_ITEMS)}
-           />
+           {filteredTierList.length > 0 && (
+             <SectionRow 
+               title="👑 이번 주 장르별 티어리스트 S등급" 
+               subtitle="커뮤니티 평판을 종합한 검증된 명작"
+               items={filteredTierList} 
+               onExpand={() => handleExpand('장르별 티어리스트', filteredTierList)}
+             />
+           )}
 
-           <SectionRow 
-             title="🎁 내가 좋아할 만한 굿즈 펀딩" 
-             subtitle="놓치면 후회하는 한정판 굿즈"
-             items={FUNDING_ITEMS}
-             isFunding={true}
-             onExpand={() => handleExpand('굿즈 펀딩', FUNDING_ITEMS)}
-           />
+           {filteredFunding.length > 0 && (
+             <SectionRow 
+               title="🎁 내가 좋아할 만한 굿즈 펀딩" 
+               subtitle="놓치면 후회하는 한정판 굿즈"
+               items={filteredFunding}
+               isFunding={true}
+               onExpand={() => handleExpand('굿즈 펀딩', filteredFunding)}
+             />
+           )}
+           
+           {/* Fallback if filtering hides everything */}
+           {filteredTrending.length === 0 && filteredTierList.length === 0 && filteredFunding.length === 0 && (
+              <div className="py-20 text-center text-gray-500">
+                선택하신 카테고리에 해당하는 실시간 데이터가 없습니다. <br/>
+                상단의 "추천받기" 버튼을 눌러 AI에게 추천을 받아보세요!
+              </div>
+           )}
         </div>
       </main>
 

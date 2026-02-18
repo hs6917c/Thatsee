@@ -12,6 +12,7 @@ export interface ContentItem {
 }
 
 export interface FilterState {
+  category: string | null;
   genre: string | null;
   platform: string | null;
   mood: string | null;

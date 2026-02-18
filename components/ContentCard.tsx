@@ -20,29 +20,72 @@ const ContentCard: React.FC<ContentCardProps> = ({ item, showReason = false }) =
 
   const getPlatformUrl = () => {
     const encodedTitle = encodeURIComponent(item.title);
-    const hasPlatform = (target: string) => item.platform?.some(p => p.toLowerCase().includes(target.toLowerCase()));
+    
+    // Helper checks if any of the keywords match any of the item's platforms
+    const checkPlatform = (keywords: string[]) => {
+      if (!item.platform || item.platform.length === 0) return false;
+      return item.platform.some(p => 
+        keywords.some(k => p.toLowerCase().includes(k.toLowerCase()))
+      );
+    };
 
-    // Platform Specific Logic
+    // Webtoon Logic
     if (item.category === 'Webtoon') {
-      if (hasPlatform('Kakao')) return `https://page.kakao.com/search?word=${encodedTitle}`;
+      if (checkPlatform(['Kakao', '카카오'])) return `https://page.kakao.com/search?word=${encodedTitle}`;
+      if (checkPlatform(['Naver', '네이버'])) return `https://comic.naver.com/search?keyword=${encodedTitle}`;
+      if (checkPlatform(['Lezhin', '레진'])) return `https://www.lezhin.com/ko/search?q=${encodedTitle}`;
+      // Default fallback for Webtoon
       return `https://comic.naver.com/search?keyword=${encodedTitle}`;
     }
     
+    // Novel Logic
     if (item.category === 'Novel') {
-      if (hasPlatform('Kakao')) return `https://page.kakao.com/search?word=${encodedTitle}`;
+      if (checkPlatform(['Kakao', '카카오'])) return `https://page.kakao.com/search?word=${encodedTitle}`;
+      if (checkPlatform(['Naver', '네이버'])) return `https://series.naver.com/search/search.series?t=all&q=${encodedTitle}`;
+      if (checkPlatform(['Ridi', '리디'])) return `https://ridibooks.com/search?q=${encodedTitle}`;
+      // Default fallback for Novel
       return `https://ridibooks.com/search?q=${encodedTitle}`;
     }
     
+    // Video & Anime Logic
     if (['Movie', 'Drama', 'Anime'].includes(item.category)) {
-      if (hasPlatform('Netflix')) return `https://www.netflix.com/search?q=${encodedTitle}`;
-      if (hasPlatform('Watcha')) return `https://watcha.com/search?query=${encodedTitle}`;
-      if (hasPlatform('Tving')) return `https://www.tving.com/search/main?keyword=${encodedTitle}`;
-      if (hasPlatform('Disney')) return `https://www.disneyplus.com/search?q=${encodedTitle}`;
-      if (hasPlatform('Laftel') || item.category === 'Anime') return `https://laftel.net/search?keyword=${encodedTitle}`;
+      if (checkPlatform(['Netflix', '넷플릭스'])) return `https://www.netflix.com/search?q=${encodedTitle}`;
+      if (checkPlatform(['Watcha', '왓챠'])) return `https://watcha.com/search?query=${encodedTitle}`;
+      if (checkPlatform(['Tving', '티빙'])) return `https://www.tving.com/search/main?keyword=${encodedTitle}`;
+      if (checkPlatform(['Disney', '디즈니'])) return `https://www.disneyplus.com/search?q=${encodedTitle}`;
+      if (checkPlatform(['Coupang', '쿠팡'])) return `https://www.coupangplay.com/search?q=${encodedTitle}`;
+      if (checkPlatform(['Wavve', '웨이브'])) return `https://www.wavve.com/search/search?searchWord=${encodedTitle}`;
+      if (checkPlatform(['Laftel', '라프텔'])) return `https://laftel.net/search?keyword=${encodedTitle}`;
+      
+      // Category specific defaults
+      if (item.category === 'Anime') return `https://laftel.net/search?keyword=${encodedTitle}`;
     }
 
-    // Default Fallback
+    // Ultimate Fallback
     return `https://www.google.com/search?q=${encodedTitle} ${item.category} 보러가기`;
+  };
+
+  const getPlatformBadge = (platform: string) => {
+    const p = platform.toLowerCase();
+    let styles = 'bg-gray-700 text-gray-200';
+    let label = platform;
+
+    if (p.includes('netflix') || p.includes('넷플릭스')) { styles = 'bg-[#E50914] text-white'; label = 'NETFLIX'; }
+    else if (p.includes('watcha') || p.includes('왓챠')) { styles = 'bg-[#FF0558] text-white'; label = 'WATCHA'; }
+    else if (p.includes('tving') || p.includes('티빙')) { styles = 'bg-[#FF153C] text-white'; label = 'TVING'; }
+    else if (p.includes('disney') || p.includes('디즈니')) { styles = 'bg-[#113CCF] text-white'; label = 'Disney+'; }
+    else if (p.includes('naver') || p.includes('네이버')) { styles = 'bg-[#00D564] text-white'; label = 'NAVER'; }
+    else if (p.includes('kakao') || p.includes('카카오')) { styles = 'bg-[#FEE500] text-black'; label = 'KAKAO'; }
+    else if (p.includes('ridi') || p.includes('리디')) { styles = 'bg-[#1F8CE6] text-white'; label = 'RIDI'; }
+    else if (p.includes('laftel') || p.includes('라프텔')) { styles = 'bg-[#816BFF] text-white'; label = 'LAFTEL'; }
+    else if (p.includes('wavve') || p.includes('웨이브')) { styles = 'bg-[#1351f9] text-white'; label = 'wavve'; }
+    else if (p.includes('coupang') || p.includes('쿠팡')) { styles = 'bg-[#343a40] text-white'; label = 'Coupang'; }
+    
+    return (
+        <span key={platform} className={`text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm tracking-tight ${styles}`}>
+            {label}
+        </span>
+    );
   };
 
   const handleWatchClick = (e: React.MouseEvent) => {
@@ -79,14 +122,21 @@ const ContentCard: React.FC<ContentCardProps> = ({ item, showReason = false }) =
         />
         
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-100 group-hover:opacity-0 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-100 group-hover:opacity-0 transition-opacity duration-300" />
         
-        {/* Static Title & Rating */}
-        <div className="absolute bottom-0 left-0 p-3 w-full group-hover:opacity-0 transition-opacity duration-300">
-          <h3 className="text-white font-semibold text-sm md:text-base truncate">{item.title}</h3>
+        {/* Static Title & Rating & Platform Badges */}
+        <div className="absolute bottom-0 left-0 p-3 w-full group-hover:opacity-0 transition-opacity duration-300 flex flex-col justify-end">
+          {/* Platform Logos */}
+          {item.platform && item.platform.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-1.5">
+              {item.platform.slice(0, 3).map(p => getPlatformBadge(p))}
+            </div>
+          )}
+          
+          <h3 className="text-white font-semibold text-sm md:text-base truncate leading-tight">{item.title}</h3>
           <div className="flex items-center text-yellow-400 text-xs mt-1">
             <Star size={12} fill="currentColor" />
-            <span className="ml-1">{item.rating}</span>
+            <span className="ml-1 font-medium">{item.rating}</span>
           </div>
         </div>
 
