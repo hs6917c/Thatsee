@@ -1,0 +1,5 @@
+{
+  "name": "Thatsee (이거봐라)",
+  "description": "AI-powered content recommendation service for movies, webtoons, novels, and anime. Curates choices based on mood, platform, and community tiers.",
+  "requestFramePermissions": []
+}
